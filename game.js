@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         width: 60,
         height: 20,
         padding: 10,
-        offsetX: 45,
+        offsetX: 20,
         offsetY: 45
     };
 
@@ -200,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function movePaddle() {
         paddle.x += paddle.dx;
-        // Wall collision for paddle
         if (paddle.x < 0) paddle.x = 0;
         if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
     }
@@ -228,13 +227,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 ball.x > paddle.x &&
                 ball.x < paddle.x + paddle.width
             ) {
-                // Vibrate on paddle hit
                 vibrate();
 
-                // Reverse vertical direction
-                ball.dy = -Math.abs(ball.dy);
+                // Fix for low bounce: set a consistent upward velocity
+                ball.dy = -initialBall.speed;
 
-                // Calculate horizontal direction based on hit position
                 let hitPoint = (ball.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
                 ball.dx = hitPoint * ball.speed;
 
@@ -278,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
-        // Clean up consumed power-ups
         powerUps = powerUps.filter(pu => pu.status === 1);
     }
 
@@ -303,7 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         const hit = ball.x > b.x && ball.x < b.x + brick.width &&
                                     ball.y > b.y && ball.y < b.y + brick.height;
                         if (hit) {
-                            ball.dy *= -1; // Reverse ball direction
+                            // A more robust collision logic could be implemented, but for a simple fix, this is fine.
+                            ball.dy *= -1;
                             vibrate();
                             b.health--;
 
@@ -313,12 +310,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 scoreEl.textContent = score;
 
                                 if (b.isSpecial) {
-                                    // Special brick: Destroy surrounding bricks and spawn power-up
-                                    score += 50; // Bonus points
+                                    score += 50;
                                     destroySurroundingBricks(b.x, b.y);
                                     spawnPowerUp(b.x, b.y);
                                 } else {
-                                    // Regular brick: 10% chance to spawn power-up
                                     if (Math.random() < 0.1) {
                                         spawnPowerUp(b.x, b.y);
                                     }
@@ -336,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
             column.forEach(b => {
                 if (b.status === 1) {
                     const distance = Math.sqrt(Math.pow(b.x - x, 2) + Math.pow(b.y - y, 2));
-                    if (distance < brick.width * 1.5) { // Radius of destruction
+                    if (distance < brick.width * 1.5) {
                         b.status = 0;
                         score += 10;
                         scoreEl.textContent = score;
